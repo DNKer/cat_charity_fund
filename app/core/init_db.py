@@ -14,19 +14,19 @@ get_user_db_context = contextlib.asynccontextmanager(get_user_db)
 get_user_manager_context = contextlib.asynccontextmanager(get_user_manager)
 
 
-# Корутина, создающая юзера с переданным email и паролем.
-# Возможно создание суперюзера при передаче аргумента is_superuser=True.
 async def create_user(
         email: EmailStr, password: str, is_superuser: bool = False
-):
+) -> None:
+    """Создает пользователя с переданным e-mail и паролем.
+    Создание суперпользователя при передаче аргумента is_superuser=True.
+    get_async_session_context() - получение объекта асинхронной сессии
+    get_user_db_context() - получение объекта класса SQLAlchemyUserDatabase
+    get_user_manager_context() - получение объекта класса UserManager
+    user_manager.create() - создание пользователя."""
     try:
-        # Получение объекта асинхронной сессии.
         async with get_async_session_context() as session:
-            # Получение объекта класса SQLAlchemyUserDatabase.
             async with get_user_db_context(session) as user_db:
-                # Получение объекта класса UserManager.
                 async with get_user_manager_context(user_db) as user_manager:
-                    # Создание пользователя.
                     await user_manager.create(
                         UserCreate(
                             email=email,
@@ -34,14 +34,13 @@ async def create_user(
                             is_superuser=is_superuser
                         )
                     )
-    # В случае, если такой пользователь уже есть, ничего не предпринимать.
     except UserAlreadyExists:
         pass
 
 
-# Корутина, проверяющая, указаны ли в настройках данные для суперюзера.
-# Если да, то вызывается корутина create_user для создания суперпользователя.
-async def create_first_superuser():
+async def create_first_superuser() -> None:
+    """Проверяет, указаны ли в настройках данные для суперпользователя.
+    Если да, то вызывается create_user() для создания суперпользователя."""
     if (settings.first_superuser_email is not None and
             settings.first_superuser_password is not None):
         await create_user(

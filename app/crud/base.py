@@ -1,48 +1,46 @@
-from typing import Optional
+from typing import Generic, List, Optional, Type, TypeVar
 
 from fastapi.encoders import jsonable_encoder
+from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.user import User
+from app.core.db import Base
+from app.models import User
+
+ModelType = TypeVar('ModelType', bound=Base)
+CreateSchemaType = TypeVar('CreateSchemaType', bound=BaseModel)
+UpdateSchemaType = TypeVar('UpdateSchemaType', bound=BaseModel)
 
 
-class CRUDBase:
+class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     """
-    Базовый класс с набором стандартных методов. От него унаследуем
-    конкретные классы для CRUD-операций с определёнными моделями.
+    Базовый класс с набором стандартных методов.
     """
 
-    def __init__(self, model):
+    def __init__(self, model: Type[ModelType]):
         self.model = model
 
     async def get(
-            self,
-            obj_id: int,
-            session: AsyncSession,
-    ):
+        self, obj_id: int, session: AsyncSession
+    ) -> Optional[ModelType]:
         """Получить объект по id."""
         db_obj = await session.execute(
-            select(self.model).where(
-                self.model.id == obj_id
-            )
+            select(self.model).where(self.model.id == obj_id)
         )
         return db_obj.scalars().first()
 
-    async def get_multi(
-            self,
-            session: AsyncSession
-    ):
+    async def get_multi(self, session: AsyncSession) -> List[ModelType]:
         """Получить все объекты заданного класса."""
         db_objs = await session.execute(select(self.model))
         return db_objs.scalars().all()
 
     async def create(
-            self,
-            obj_in,
-            session: AsyncSession,
-            user: Optional[User] = None
-    ):
+        self,
+        obj_in: CreateSchemaType,
+        session: AsyncSession,
+        user: Optional[User] = None
+    ) -> ModelType:
         """Создать новый объект."""
         obj_in_data = obj_in.dict()
         if user is not None:
@@ -54,15 +52,14 @@ class CRUDBase:
         return db_obj
 
     async def update(
-            self,
-            db_obj,
-            obj_in,
-            session: AsyncSession,
-    ):
-        """Обновить объект."""
+        self,
+        db_obj: ModelType,
+        obj_in: UpdateSchemaType,
+        session: AsyncSession,
+    ) -> ModelType:
+        """Частичное обновление объекта."""
         obj_data = jsonable_encoder(db_obj)
         update_data = obj_in.dict(exclude_unset=True)
-
         for field in obj_data:
             if field in update_data:
                 setattr(db_obj, field, update_data[field])
@@ -72,11 +69,9 @@ class CRUDBase:
         return db_obj
 
     async def remove(
-            self,
-            db_obj,
-            session: AsyncSession,
-    ):
-        """Удалить объект."""
+        self, db_obj: ModelType, session: AsyncSession
+    ) -> ModelType:
+        """Удаление объекта."""
         await session.delete(db_obj)
         await session.commit()
         return db_obj

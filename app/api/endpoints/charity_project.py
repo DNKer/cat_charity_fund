@@ -1,17 +1,26 @@
-from fastapi import APIRouter, Depends
+from typing import List
 
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.validators import check_meeting_room_exists, check_name_duplicate
+from app.api.validators import (
+    check_charity_project_exists,
+    check_closed,
+    check_full_amount,
+    check_name_duplicate,
+    check_project_is_invested,
+)
 from app.core.db import get_async_session
 from app.core.user import current_superuser
-from app.crud.meeting_room import meeting_room_crud
-from app.crud.reservation import reservation_crud
-# Импортируем модель, чтобы указать её в аннотации.
-from app.schemas.meeting_room import (
-    MeetingRoomCreate, MeetingRoomDB, MeetingRoomUpdate
+from app.crud.chartity_project import charity_project_crud
+from app.crud.donation import donation_crud
+
+from app.schemas.charity_project import (
+    CharityProjectCreate,
+    CharityProjectDB,
+    CharityProjectUpdate
 )
-from app.schemas.reservation import ReservationDB
+from app.services.investment import investment
 
 
 router = APIRouter()
@@ -19,105 +28,76 @@ router = APIRouter()
 
 @router.post(
     '/',
-    # Указываем схему ответа.
-    response_model=MeetingRoomDB,
+    response_model=CharityProjectDB,
     response_model_exclude_none=True,
     dependencies=[Depends(current_superuser)],
-    description='Создание новой `переговорки.`',
+    description='Создание нового `проекта.`',
 )
-async def create_new_meeting_room(
-        meeting_room: MeetingRoomCreate,
-        # Указываем зависимость, предоставляющую объект сессии,
-        # как параметр функции.
+async def create_new_charity_project(
+        charity_project: CharityProjectCreate,
         session: AsyncSession = Depends(get_async_session),
 ):
-    """Только для суперюзеров."""
-    # Выносим проверку дубликата имени в отдельную корутину.
-    # Если такое имя уже существует, то будет вызвана ошибка HTTPException
-    # и обработка запроса остановится.
-    await check_name_duplicate(meeting_room.name, session)
-    new_room = await meeting_room_crud.create(meeting_room, session)
-    return new_room
+    """Создать проект. Только для суперпользователей."""
+    await check_name_duplicate(charity_project.name, session)
+    new_project = await charity_project_crud.create(charity_project, session)
+    await investment(new_project, donation_crud, session)
+    return new_project
 
 
 @router.get(
     '/',
-    response_model=list[MeetingRoomDB],
+    response_model=List[CharityProjectDB],
     response_model_exclude_none=True,
-    description='Получить список всех `переговорок.`'
+    description='Получить список всех `проектов.`'
 )
-async def get_all_meeting_rooms(
+async def get_all_charity_projects(
     session: AsyncSession = Depends(get_async_session),
 ):
-    all_rooms = await meeting_room_crud.get_multi(session)
-    return all_rooms
+    """Получить перечень проектов."""
+    all_charity_projects = await charity_project_crud.get_multi(session)
+    return all_charity_projects
 
 
 @router.patch(
-    # ID обновляемого объекта будет передаваться path-параметром.
-    '/{meeting_room_id}',
-    response_model=MeetingRoomDB,
-    response_model_exclude_none=True,
+    '/{project_id}',
+    response_model=CharityProjectDB,
     dependencies=[Depends(current_superuser)],
-    description='Изменить `переговороку`'
+    description='Изменить `проект`'
 )
-async def partially_update_meeting_room(
-        # ID обновляемого объекта.
-        meeting_room_id: int,
-        # JSON-данные, отправленные пользователем.
-        obj_in: MeetingRoomUpdate,
+async def partially_update_charity_project(
+        project_id: int,
+        obj_in: CharityProjectUpdate,
         session: AsyncSession = Depends(get_async_session),
 ):
-    """Только для суперюзеров."""
-    # Выносим повторяющийся код в отдельную корутину.
-    meeting_room = await check_meeting_room_exists(
-        meeting_room_id, session
+    """Изменить проект. Только для суперпользователя."""
+    charity_project = await check_charity_project_exists(
+        project_id, session
     )
-
+    check_closed(charity_project)
     if obj_in.name is not None:
-        # Если в запросе получено поле name — проверяем его на уникальность.
         await check_name_duplicate(obj_in.name, session)
-
-    # Передаём в корутину все необходимые для обновления данные.
-    meeting_room = await meeting_room_crud.update(
-        meeting_room, obj_in, session
+    if obj_in.full_amount is not None:
+        check_full_amount(charity_project, obj_in.full_amount)
+    charity_project = await charity_project_crud.update(
+        charity_project, obj_in, session
     )
-    return meeting_room
+    return charity_project
 
 
 @router.delete(
-    '/{meeting_room_id}',
-    response_model=MeetingRoomDB,
-    response_model_exclude_none=True,
+    '/{project_id}',
+    response_model=CharityProjectDB,
     dependencies=[Depends(current_superuser)],
-    description='Удалить `переговороку.`'
+    description='Удалить `проект.`'
 )
-async def remove_meeting_room(
-        meeting_room_id: int,
+async def remove_charity_project(
+        project_id: int,
         session: AsyncSession = Depends(get_async_session),
 ):
-    """Только для суперюзеров."""
-    # Выносим повторяющийся код в отдельную корутину.
-    meeting_room = await check_meeting_room_exists(
-        meeting_room_id, session
+    """Удалить проект. Только для суперпользователя."""
+    charity_project = await check_charity_project_exists(
+        project_id, session
     )
-    meeting_room = await meeting_room_crud.remove(meeting_room, session)
-    return meeting_room
-
-
-@router.delete(
-    '/{meeting_room_id}/reservations',
-    response_model=ReservationDB,
-    # Добавляем множество с полями, которые надо исключить из ответа.
-    response_model_exclude={'user_id'},
-    description='Удалить бронь `переговороки.`'
-)
-async def get_reservations_for_room(
-        meeting_room_id: int,
-        session: AsyncSession = Depends(get_async_session),
-):
-    await check_meeting_room_exists(meeting_room_id, session)
-    reservations = await reservation_crud.get_future_reservations_for_room(
-        room_id=meeting_room_id, session=session
-    )
-    return reservations
+    charity_project = check_project_is_invested(charity_project)
+    charity_project = await charity_project_crud.remove(charity_project, session)
+    return charity_project

@@ -39,7 +39,7 @@ class DonationDB(DonationView):
     Схема со всеми данными объекта пожертвования.
     """
 
-    user_id: int
-    invested_amount: int
-    fully_invested: bool
-    close_date: Optional[datetime]
+    user_id: Optional[int]
+    invested_amount: int = 0
+    fully_invested: bool = False
+    close_date: Optional[datetime] = None

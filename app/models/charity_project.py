@@ -1,12 +1,12 @@
 from sqlalchemy import Column, String, Text
 
-from app.core.db import Base
+from app.models.base import AbstractModel
 
 
-class CharityProject(Base):
+class CharityProject(AbstractModel):
     """Модель `Благотворительный проект`."""
 
-    name = Column(String(100), unique=True, nullable=False)
+    name = Column(String(100), nullable=False, unique=True, )
     description = Column(Text, nullable=False)
 
     def __repr__(self):

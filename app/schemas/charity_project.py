@@ -3,8 +3,6 @@ from typing import Optional
 
 from pydantic import BaseModel, Extra, Field, PositiveInt
 
-from app.core.config import settings
-
 
 class CharityProjectBase(BaseModel):
     """
@@ -37,9 +35,12 @@ class CharityProjectUpdate(CharityProjectBase):
     Схема `Проект` (обновление).
     """
 
-    name: Optional[str] = Field(None, min_length=1, max_length=100)
-    description: Optional[str]
-    full_amount: Optional[PositiveInt]
+    name: str = Field(None, min_length=1, max_length=100)
+    description: str = Field(None, min_length=1)
+    full_amount: int = Field(None, gt=0)
+
+    class Config:
+        extra = Extra.forbid
 
 
 class CharityProjectDB(CharityProjectCreate):
@@ -58,12 +59,11 @@ class CharityProjectDB(CharityProjectCreate):
     create_date — дата создания проекта
     close_date — дата закрытия проекта
     """
-
     id: int
     invested_amount: int = 0
     fully_invested: bool = False
-    create_date: datetime = datetime.now().strftime(settings.FORMAT_DATE_TIME)
-    close_date: Optional[datetime.replace(microsecond=0)]
+    create_date: datetime = datetime.now()
+    close_date: Optional[datetime]
 
     class Config:
         orm_mode = True
