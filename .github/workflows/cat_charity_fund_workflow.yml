@@ -29,6 +29,9 @@ jobs:
           echo SECRET=${{ secrets.SECRET }} >> .env
           echo FIRST_SUPERUSER_EMAIL=${{ secrets.FIRST_SUPERUSER_EMAIL }} >> .env
           echo FIRST_SUPERUSER_PASSWORD=${{ secrets.FIRST_SUPERUSER_PASSWORD }} >> .env
+          echo TOKKEN_URL=${{ secrets.TOKKEN_URL }} >> .env
+          echo TOKKEN_LIFETIME_SEC=${{ secrets.TOKKEN_LIFETIME_SEC }} >> .env
+          echo BACKEND_NAME_UNIC=${{ secrets.BACKEND_NAME_UNIC }} >> .env
           pytest
 
   send_message:
