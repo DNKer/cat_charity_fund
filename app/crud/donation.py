@@ -17,8 +17,7 @@ class CRUDDonation(CRUDBase):
             Donation.user_id == user.id,
         )
         donations = await session.execute(select_user)
-        result = donations.scalars().all()
-        return result
+        return donations.scalars().all()
 
 
 donation_crud = CRUDDonation(Donation)

@@ -7,7 +7,7 @@ from app.crud.base import CRUDBase
 from app.models.charity_project import CharityProject
 
 
-class CRUDCharity_Project(CRUDBase):
+class CrudCharityProject(CRUDBase):
 
     async def get_charity_project_id_by_name(
             self,
@@ -23,4 +23,4 @@ class CRUDCharity_Project(CRUDBase):
         return db_charity_project_id.scalars().first()
 
 
-charity_project_crud = CRUDCharity_Project(CharityProject)
+charity_project_crud = CrudCharityProject(CharityProject)

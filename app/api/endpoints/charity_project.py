@@ -54,8 +54,7 @@ async def get_all_charity_projects(
     session: AsyncSession = Depends(get_async_session),
 ):
     """Получить перечень проектов."""
-    all_charity_projects = await charity_project_crud.get_multi(session)
-    return all_charity_projects
+    return await charity_project_crud.get_multi(session)
 
 
 @router.patch(
@@ -99,5 +98,4 @@ async def remove_charity_project(
         project_id, session
     )
     charity_project = check_project_is_invested(charity_project)
-    charity_project = await charity_project_crud.remove(charity_project, session)
-    return charity_project
+    return await charity_project_crud.remove(charity_project, session)
