@@ -33,7 +33,7 @@ async def create_donation(
         session: AsyncSession = Depends(get_async_session),
         user: User = Depends(current_user),
 ):
-    """Создание `пожертвования. Текущий пользователь."""
+    """Создание `пожертвования`. Текущий пользователь."""
     new_donation = await donation_crud.create(
         reservation, session, user
     )

@@ -23,7 +23,7 @@ async def check_name_duplicate(
 
 
 def check_project_is_invested(charity_project: CharityProject, new_amount=None) -> None:
-    """Проверка наличия суммы на счете (внесенной суммы)."""
+    """Проверка наличия суммы на счете (внесённой суммы)."""
     invested = charity_project.invested_amount
     if new_amount:
         if invested > new_amount:
@@ -44,7 +44,7 @@ async def check_charity_project_exists(
         project_name_id: int,
         session: AsyncSession,
 ) -> CharityProject:
-    """Проверка существования проекта в базе данных.check_existence"""
+    """Проверка существования проекта в базе данных."""
     charity_project = await charity_project_crud.get(project_name_id, session)
     if charity_project is None:
         raise HTTPException(

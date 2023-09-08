@@ -62,7 +62,7 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
         user: Union[UserCreate, User],
     ) -> None:
         """Проверяет длину пароля и отсутствие email в пароле.
-        Возвращаемое значение на англ. языке - требование тестов."""
+        Возвращаемое значение на англ. языке - требование тестов Y'prakticum."""
         if len(password) < 3:
             raise InvalidPasswordException(
                 reason='Password should be at least 3 characters'
