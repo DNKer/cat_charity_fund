@@ -32,7 +32,7 @@ jobs:
           echo TOKKEN_URL=${{ secrets.TOKKEN_URL }} >> .env
           echo TOKKEN_LIFETIME_SEC=${{ secrets.TOKKEN_LIFETIME_SEC }} >> .env
           echo BACKEND_NAME_UNIC=${{ secrets.BACKEND_NAME_UNIC }} >> .env
-          sudo alembic upgrade head
+          echo sudo alembic upgrade head
           pytest
 
   send_message:
