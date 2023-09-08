@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     """
 
     app_title: str = 'QRKot'
-    app_author: str
+    app_author: str = 'DNK'
     database_url: str = 'sqlite+aiosqlite:///./fastapi.db'
     secret: str = 'SECRET'
     description: str = 'Приложение благотворительного фонда поддержки котиков.'
