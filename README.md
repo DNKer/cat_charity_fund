@@ -25,8 +25,6 @@
 ![Alembic](https://img.shields.io/badge/Alembic-1.7.7-blue)
 ![GitHub%20Actions](https://img.shields.io/badge/-GitHub%20Actions-464646?style=plastic&logo=GitHub%20actions&logoColor=56C0C0&color=008080)
 
-![workflow](https://github.com/DNKer/cat_charity_fund/actions/workflows/cat_charity_fund_workflow.yml/badge.svg?branch=master&event=push)
-
 ## Установка
 
 > приводятся команды для `Windows`.
