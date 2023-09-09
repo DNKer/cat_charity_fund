@@ -23,7 +23,7 @@
 [![pyJWT](https://img.shields.io/badge/-pyJWT-464646?style=plastic&color=008080)](https://pypi.org/project/PyJWT/)
 ![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-1.4.36-blue)
 ![Alembic](https://img.shields.io/badge/Alembic-1.7.7-blue)
-![GitHub%20Actions](https://img.shields.io/badge/-GitHub%20Actions-464646?style=plastic&logo=GitHub%20actions&logoColor=56C0C0&color=008080)
+
 
 ## Установка
 
