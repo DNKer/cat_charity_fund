@@ -61,6 +61,7 @@ pip install -r requirements.txt
 
 ```
 APP_TITLE=Заголовок (название приложения)
+APP_AUTHOR=Author
 DESCRIPTION=Описание
 DATABASE_URL=sqlite+aiosqlite:///./<название базы данных>.db
 SECRET=<секретное слово>

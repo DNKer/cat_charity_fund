@@ -1,3 +1,4 @@
+import logging
 from typing import Optional, Union
 
 from fastapi import Depends, Request
@@ -17,6 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.db import get_async_session
+from app.core.exceptions import LogFileOutputError
 from app.models.user import User
 from app.schemas.user import UserCreate
 
@@ -63,7 +65,7 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
     ) -> None:
         """Проверяет длину пароля и отсутствие email в пароле.
         Возвращаемое значение на англ. языке - требование тестов Y'prakticum."""
-        if len(password) < 3:
+        if len(password) < settings.MAX_LENGHT_PASSWORD:
             raise InvalidPasswordException(
                 reason='Password should be at least 3 characters'
             )
@@ -73,10 +75,14 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
             )
 
     async def on_after_register(
-            self, user: User, request: Optional[Request] = None
+        self, user: User, request: Optional[Request] = None
     ) -> None:
         """Определяет действия после успешной регистрации пользователя."""
-        print(f'Пользователь {user.email} зарегистрирован.')
+        try:
+            logging.info(f'Пользователь {user.email} зарегистрирован.')
+        except Exception as error:
+            logging.exception(f'В процессе загрузки возникла ошибка: {error}')
+            raise LogFileOutputError
 
 
 async def get_user_manager(user_db=Depends(get_user_db)) -> None:

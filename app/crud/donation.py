@@ -10,7 +10,7 @@ from app.models import Donation, User
 class CRUDDonation(CRUDBase):
 
     async def get_user_donations(
-            self, session: AsyncSession, user: User
+        self, session: AsyncSession, user: User
     ) -> Optional[Donation]:
         """Получение всех пожертвований пользователя."""
         select_user = select(Donation).where(
